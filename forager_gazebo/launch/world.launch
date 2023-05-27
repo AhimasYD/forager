@@ -1,0 +1,11 @@
+<launch>
+
+    <!-- Create world -->
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <arg name="world_name" value="$(find forager_gazebo)/worlds/map_001.world"/>
+    </include>
+
+    <!-- Spawn a robot into Gazebo -->
+    <node name="spawn_sdf" pkg="gazebo_ros" type="spawn_model" args="-file $(find forager_gazebo)/robots/robot_000.sdf -sdf -z 1.5 -model foragerer"/>
+    
+</launch>
