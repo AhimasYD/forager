@@ -27,7 +27,7 @@ class ForagerController:
     def __init__(self):
         self.num_actions = 4
 
-        self.steps_per_episode = 150
+        self.steps_per_episode = 50
         self.action_probs_history = []
         self.critic_value_history = []
         self.rewards_history = []
@@ -35,7 +35,7 @@ class ForagerController:
         self.episode_reward = 0
         self.running_reward = 0
 
-        self.gamma = 0.99  # Discount factor for past rewards
+        self.gamma = 0.98  # Discount factor for past rewards
         self.eps = np.finfo(np.float32).eps.item()  # Smallest number such that 1.0 + eps != 1.0
 
         self.optimizer = optimizers.Adam(learning_rate=0.01)
@@ -136,6 +136,7 @@ class ForagerController:
                 loss_value = sum(actor_losses) + sum(critic_losses)
                 grads = tape.gradient(loss_value, self.model.trainable_variables)
                 self.optimizer.apply_gradients(zip(grads, self.model.trainable_variables))
+                tape.reset()
 
                 # Clear the loss and reward history
                 self.action_probs_history = self.action_probs_history[-1:]
@@ -146,13 +147,13 @@ class ForagerController:
     def twist(self, action: int):
         msg = Twist()
         if action == 0:
-            msg.linear.x = -1.0
+            msg.linear.x = -0.5
         elif action == 1:
-            msg.linear.x = 1.0 
+            msg.linear.x = 0.5
         elif action == 2:
-            msg.angular.z = -1.0
+            msg.angular.z = -0.3
         elif action == 3:
-            msg.angular.z = 1.0
+            msg.angular.z = 0.3
         
         self.pub_twist.publish(msg)
 
@@ -162,8 +163,8 @@ class ForagerController:
 
 
     def get_reward(self):
-        foragerer_ind = self.link_states.name.index('foragerer::chassis')
-        foragerer_pos = self.link_states.pose[foragerer_ind].position
+        forager_ind = self.link_states.name.index('forager::bumper')
+        forager_pos = self.link_states.pose[forager_ind].position
 
         model_names = self.world_properties().model_names
         model_names = list(filter(lambda name: name.startswith('goal'), model_names))
@@ -173,15 +174,15 @@ class ForagerController:
             goal_ind = self.link_states.name.index(f'{name}::link')
             goal_pos = self.link_states.pose[goal_ind].position
             
-            dist = math.sqrt((foragerer_pos.x - goal_pos.x)**2 + (foragerer_pos.y - goal_pos.y)**2)
-            if dist < 2.5:
+            dist = math.sqrt((forager_pos.x - goal_pos.x)**2 + (forager_pos.y - goal_pos.y)**2)
+            if dist < 0.75:
                 achieved += 1
                 self.delete_model(name)
 
         if achieved > 0:
-            return 10.0 * achieved
+            return 100.0 * achieved
         else:
-            return 0.0
+            return -1.0
 
 
 if __name__ == '__main__':

@@ -6,6 +6,6 @@
     </include>
 
     <!-- Spawn a robot into Gazebo -->
-    <node name="spawn_sdf" pkg="gazebo_ros" type="spawn_model" args="-file $(find forager_gazebo)/robots/robot_000.sdf -sdf -z 1.5 -model foragerer"/>
+    <node name="spawn_sdf" pkg="gazebo_ros" type="spawn_model" args="-file $(find forager_gazebo)/robots/robot_001.sdf -sdf -z 0.8 -model forager"/>
     
 </launch>
